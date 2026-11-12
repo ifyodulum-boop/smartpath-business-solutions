@@ -51,18 +51,18 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
 
         {/* Main Confirmation Card */}
         <div className="bg-[#FFFDF9] rounded-3xl shadow-2xl shadow-[rgba(2,44,34,0.18)] border border-[#E8DFC8] overflow-hidden">
-          {/* Top Banner (Deep Emerald Green Luxury with Metallic Gold Highlights) */}
-          <div className="bg-gradient-to-b from-[#02231A] via-[#043326] to-[#021F17] text-[#FBF7EE] p-8 sm:p-14 text-center relative overflow-hidden border-b border-[#D4AF37]/35">
+          {/* Top Banner (Deep Emerald Green #085C52 with Metallic Gold Highlights) */}
+          <div className="bg-gradient-to-b from-[#085C52] via-[#064A42] to-[#053D36] text-[#FBF7EE] p-8 sm:p-14 text-center relative overflow-hidden border-b border-[#D4AF37]/35">
             {/* Subtle atmospheric gold & emerald ambient glow */}
-            <div className="absolute -top-24 -left-24 w-80 h-80 bg-[#064E3B]/40 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -top-24 -left-24 w-80 h-80 bg-[#0A7367]/40 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-[#D4AF37]/20 rounded-full blur-3xl pointer-events-none" />
             
             {/* Success Check Icon Badge with Gold Ring */}
             <div className="relative inline-flex items-center justify-center mb-6">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#065F46] via-[#04392B] to-[#02231A] text-[#F9F1DC] flex items-center justify-center shadow-2xl shadow-black/50 ring-2 ring-[#D4AF37]/60">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#0A6E62] via-[#085C52] to-[#053B34] text-[#F9F1DC] flex items-center justify-center shadow-2xl shadow-black/30 ring-2 ring-[#D4AF37]/60">
                 <CheckCircle2 className="w-10 h-10 text-[#E5C583]" />
               </div>
-              <div className="absolute -top-1.5 -right-1.5 w-7 h-7 rounded-full bg-gradient-to-r from-[#D4AF37] via-[#E5C583] to-[#C5A059] border-2 border-[#02231A] flex items-center justify-center shadow-md">
+              <div className="absolute -top-1.5 -right-1.5 w-7 h-7 rounded-full bg-gradient-to-r from-[#D4AF37] via-[#E5C583] to-[#C5A059] border-2 border-[#085C52] flex items-center justify-center shadow-md">
                 <Sparkles className="w-3.5 h-3.5 text-[#02231A]" />
               </div>
             </div>
@@ -79,17 +79,17 @@ export const ThankYouPage: React.FC<ThankYouPageProps> = ({
             {lead && (
               <div className="mt-6 flex justify-center">
                 {submissionResult?.visitorEmailSent ? (
-                  <div className="inline-flex items-center gap-2 text-xs bg-[#032B20] border border-[#D4AF37]/50 text-[#F3E5AB] px-4 py-2 rounded-full font-medium shadow-xs">
+                  <div className="inline-flex items-center gap-2 text-xs bg-[#053B34] border border-[#D4AF37]/50 text-[#F3E5AB] px-4 py-2 rounded-full font-medium shadow-xs">
                     <CheckCircle2 className="w-4 h-4 text-[#D4AF37] shrink-0" />
                     <span>Confirmation email delivered to: <strong>{lead.email}</strong></span>
                   </div>
                 ) : submissionResult?.sheetSaved ? (
-                  <div className="inline-flex items-center gap-2 text-xs bg-[#032B20] border border-[#C87D55]/60 text-[#FDE8DE] px-4 py-2 rounded-full font-medium shadow-xs">
+                  <div className="inline-flex items-center gap-2 text-xs bg-[#053B34] border border-[#C87D55]/60 text-[#FDE8DE] px-4 py-2 rounded-full font-medium shadow-xs">
                     <AlertCircle className="w-4 h-4 text-[#C87D55] shrink-0" />
                     <span>Lead recorded in Google Sheet. (Email delivery pending Google authorization).</span>
                   </div>
                 ) : (
-                  <div className="inline-flex items-center gap-2 text-xs bg-[#032B20] border border-[#D4AF37]/30 text-[#E2DDD5] px-4 py-2 rounded-full font-medium shadow-xs">
+                  <div className="inline-flex items-center gap-2 text-xs bg-[#053B34] border border-[#D4AF37]/30 text-[#E2DDD5] px-4 py-2 rounded-full font-medium shadow-xs">
                     <span>Direct access ready for: <strong>{lead.email}</strong></span>
                   </div>
                 )}

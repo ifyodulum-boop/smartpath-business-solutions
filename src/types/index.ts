@@ -1,11 +1,12 @@
 export interface LeadFormData {
   fullName: string;
   email: string;
-  whatsappNumber: string;
 }
 
-export interface LeadSubmissionRecord extends LeadFormData {
+export interface LeadSubmissionRecord {
   id: string;
+  fullName: string;
+  email: string;
   timestamp: string;
   formattedDate: string;
   backendResponse?: string;
@@ -29,5 +30,5 @@ export interface SubmissionResponse {
 export interface ValidationErrors {
   fullName?: string;
   email?: string;
-  whatsappNumber?: string;
 }
+

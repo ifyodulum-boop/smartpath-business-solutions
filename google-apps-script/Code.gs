@@ -5,36 +5,24 @@
  * Spreadsheet Name: SmartPath Business Solutions – Lead Records
  * Spreadsheet ID: 1RTtKcxMXptBk0goGAxRtqIhAcfKeVs6MYzm8sNpBx8o
  * Business Owner Email: christianaodulum@gmail.com
- * WhatsApp: +234 905 632 0234 (https://wa.me/2349056320234)
+ * WhatsApp Support: +234 905 632 0234 (https://wa.me/2349056320234)
  * Guide Download URL: https://drive.google.com/uc?export=download&id=1Gvz3shmI0J5hnXJ5RIpFMekfzY8sryCB
  * 
  * Column Headings (Row 1):
- * [Full Name, Email Address, WhatsApp Number, Date and Time of Submission]
+ * Column A: Full Name
+ * Column B: Email Address
+ * Column C: Date and Time of Submission
  */
 
 // ============================================================================
 // 1. CONFIGURATION SETTINGS
 // ============================================================================
 
-// The exact Spreadsheet ID for "SmartPath Business Solutions – Lead Records"
 var SPREADSHEET_ID = "1RTtKcxMXptBk0goGAxRtqIhAcfKeVs6MYzm8sNpBx8o";
-
-// TAB NAME CONFIGURATION:
-// If your tab has a specific name (e.g. "Sheet1", "Leads", or "Responses"),
-// you can write it here between quotes.
-// IF LEFT EMPTY (""), THE SCRIPT AUTOMATICALLY USES THE FIRST ACTIVE TAB IN YOUR SHEET!
-var SHEET_TAB_NAME = ""; 
-
-// Business Owner Email for notifications
+var SHEET_TAB_NAME = ""; // Empty string automatically uses the first active tab
 var OWNER_EMAIL = "christianaodulum@gmail.com";
-
-// Sender Name displayed on outgoing emails
 var SENDER_NAME = "Christiana Odulum | SmartPath Business Solutions";
-
-// Official Guide Download Link
 var GUIDE_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1Gvz3shmI0J5hnXJ5RIpFMekfzY8sryCB";
-
-// WhatsApp Link
 var WHATSAPP_CONTACT_URL = "https://wa.me/2349056320234";
 
 // ============================================================================
@@ -58,15 +46,14 @@ function doPost(e) {
   }
 
   try {
-    // 1. Parse submitted data (supports JSON text/plain payload or URL-encoded form)
+    // 1. Parse submitted data
     var data = parseRequestData(e);
     
     var fullName = (data.fullName || data.name || "").toString().trim();
     var email = (data.email || "").toString().trim().toLowerCase();
-    var whatsappNumber = (data.whatsappNumber || data.phone || data.whatsapp || "").toString().trim();
 
-    // 2. Validate input fields
-    var validationError = validateLeadData(fullName, email, whatsappNumber);
+    // 2. Validate input fields (Full Name and Email Address ONLY)
+    var validationError = validateLeadData(fullName, email);
     if (validationError) {
       return createJsonResponse({
         status: "error",
@@ -77,25 +64,24 @@ function doPost(e) {
       }, 400);
     }
 
-    // 3. Connect to the Google Spreadsheet using the exact ID
+    // 3. Connect to the Google Spreadsheet
     var sheet = getTargetSheet();
     if (!sheet) {
       throw new Error("Unable to locate spreadsheet or tab. Verify Spreadsheet ID: " + SPREADSHEET_ID);
     }
 
-    // 4. Ensure column headings exist in Row 1 without altering existing data
-    ensureColumnHeaders(sheet);
+    // 4. Ensure WhatsApp column is completely removed and 3 clean columns exist
+    cleanAndAlignSheetColumns(sheet);
 
-    // 5. Generate formatted date and time of submission
+    // 5. Generate formatted submission timestamp
     var now = new Date();
     var formattedDateTime = Utilities.formatDate(now, Session.getScriptTimeZone() || "GMT+1", "yyyy-MM-dd HH:mm:ss");
 
-    // 6. Save new row preserving all existing rows
-    // Columns: [Full Name, Email Address, WhatsApp Number, Date and Time of Submission]
+    // 6. Append new lead strictly into 3 columns:
+    // Column A: Full Name, Column B: Email Address, Column C: Date and Time of Submission
     sheet.appendRow([
       fullName,
       email,
-      whatsappNumber,
       formattedDateTime
     ]);
 
@@ -105,8 +91,9 @@ function doPost(e) {
     var emailError = null;
 
     // 7. Send notification email to Business Owner (Christiana Odulum)
+    // Contains ONLY Full Name, Email Address, and Date & Time of Submission
     try {
-      sendOwnerNotificationEmail(fullName, email, whatsappNumber, formattedDateTime);
+      sendOwnerNotificationEmail(fullName, email, formattedDateTime);
       ownerEmailSent = true;
     } catch (ownerErr) {
       Logger.log("Owner notification email failed: " + ownerErr.toString());
@@ -114,6 +101,7 @@ function doPost(e) {
     }
 
     // 8. Send confirmation email containing guide download link to visitor
+    // Preserved exactly with business WhatsApp contact details & guide download link
     try {
       sendVisitorConfirmationEmail(fullName, email);
       visitorEmailSent = true;
@@ -126,7 +114,7 @@ function doPost(e) {
       }
     }
 
-    // 9. Return accurate status response
+    // 9. Return clean success response
     return createJsonResponse({
       status: "success",
       sheetSaved: sheetSaved,
@@ -135,11 +123,10 @@ function doPost(e) {
       emailError: emailError,
       message: sheetSaved && visitorEmailSent
         ? "Lead successfully saved and confirmation email sent."
-        : "Lead successfully saved in Google Sheet (email notification status reported).",
+        : "Lead successfully saved in Google Sheet.",
       data: {
         fullName: fullName,
         email: email,
-        whatsappNumber: whatsappNumber,
         submittedAt: formattedDateTime
       }
     }, 200);
@@ -159,7 +146,7 @@ function doPost(e) {
 }
 
 // ============================================================================
-// 3. GET REQUEST HANDLER (Health Check & Diagnostics)
+// 3. GET REQUEST HANDLER (Health Check, Diagnostics & Sheet Maintenance)
 // ============================================================================
 
 function doGet(e) {
@@ -174,9 +161,11 @@ function doGet(e) {
 
   try {
     var sheet = getTargetSheet();
+    cleanAndAlignSheetColumns(sheet); // Automatically cleans columns when accessed
     diag.spreadsheetConnected = true;
     diag.activeTabName = sheet.getName();
     diag.totalRows = sheet.getLastRow();
+    diag.columns = ["Full Name", "Email Address", "Date and Time of Submission"];
   } catch (err) {
     diag.spreadsheetConnected = false;
     diag.spreadsheetError = err.toString();
@@ -210,7 +199,7 @@ function parseRequestData(e) {
   return {};
 }
 
-function validateLeadData(name, email, phone) {
+function validateLeadData(name, email) {
   if (!name || name.length < 2) {
     return "Please provide your full name (minimum 2 characters).";
   }
@@ -224,16 +213,11 @@ function validateLeadData(name, email, phone) {
     return "The email address provided is not in a valid format.";
   }
   
-  var digitsOnly = phone ? phone.replace(/\D/g, "") : "";
-  if (!phone || digitsOnly.length < 8) {
-    return "Please provide a valid WhatsApp number (at least 8 digits).";
-  }
-  
   return null;
 }
 
 // ============================================================================
-// 5. SPREADSHEET CONNECTION & HEADER INITIALIZATION
+// 5. SPREADSHEET CONNECTION & CLEAN 3-COLUMN ALIGNMENT
 // ============================================================================
 
 function getTargetSheet() {
@@ -249,7 +233,6 @@ function getTargetSheet() {
     throw new Error("Could not open spreadsheet with ID: " + SPREADSHEET_ID);
   }
 
-  // If a specific tab name is configured, look for it
   if (SHEET_TAB_NAME && SHEET_TAB_NAME.trim() !== "") {
     var specificSheet = spreadsheet.getSheetByName(SHEET_TAB_NAME.trim());
     if (specificSheet) {
@@ -257,7 +240,6 @@ function getTargetSheet() {
     }
   }
 
-  // Otherwise, automatically use the first/active sheet in the spreadsheet
   var defaultSheet = spreadsheet.getActiveSheet();
   if (!defaultSheet) {
     defaultSheet = spreadsheet.getSheets()[0];
@@ -266,57 +248,88 @@ function getTargetSheet() {
   return defaultSheet;
 }
 
-function ensureColumnHeaders(sheet) {
-  // Only write headings if the sheet is completely empty
+/**
+ * Removes the WhatsApp column completely and enforces the clean 3-column structure:
+ * Column A: Full Name
+ * Column B: Email Address
+ * Column C: Date and Time of Submission
+ * Preserves all existing lead rows and their historical name, email, and timestamp data.
+ */
+function cleanAndAlignSheetColumns(sheet) {
   if (sheet.getLastRow() === 0) {
-    var headers = [
-      "Full Name",
-      "Email Address",
-      "WhatsApp Number",
-      "Date and Time of Submission"
-    ];
-    sheet.appendRow(headers);
-    
-    // Style headings for clean presentation
-    var headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setFontWeight("bold");
-    headerRange.setBackground("#0B192C");
-    headerRange.setFontColor("#FFFFFF");
-    sheet.setFrozenRows(1);
-    
-    sheet.setColumnWidth(1, 220); // Full Name
-    sheet.setColumnWidth(2, 260); // Email Address
-    sheet.setColumnWidth(3, 190); // WhatsApp Number
-    sheet.setColumnWidth(4, 210); // Date and Time
+    sheet.appendRow(["Full Name", "Email Address", "Date and Time of Submission"]);
+    formatHeaders(sheet);
+    return;
   }
+
+  var lastCol = sheet.getLastColumn();
+  if (lastCol > 0) {
+    var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    // Traverse backwards so deleting a column doesn't shift upcoming indices
+    for (var c = headers.length - 1; c >= 0; c--) {
+      var headerText = (headers[c] || "").toString().toLowerCase();
+      if (headerText.indexOf("whatsapp") !== -1 || headerText.indexOf("phone") !== -1) {
+        sheet.deleteColumn(c + 1);
+      }
+    }
+  }
+
+  // Ensure Row 1 has the exact 3 column headings
+  sheet.getRange(1, 1).setValue("Full Name");
+  sheet.getRange(1, 2).setValue("Email Address");
+  sheet.getRange(1, 3).setValue("Date and Time of Submission");
+  formatHeaders(sheet);
+}
+
+function formatHeaders(sheet) {
+  var headerRange = sheet.getRange(1, 1, 1, 3);
+  headerRange.setFontWeight("bold");
+  headerRange.setBackground("#085C52");
+  headerRange.setFontColor("#FFFFFF");
+  sheet.setFrozenRows(1);
+  sheet.setColumnWidth(1, 240); // Full Name
+  sheet.setColumnWidth(2, 280); // Email Address
+  sheet.setColumnWidth(3, 220); // Date and Time
+}
+
+/**
+ * Standalone runner function: Execute directly in the Apps Script editor
+ * to immediately clean the spreadsheet columns without needing a form submission.
+ */
+function cleanSpreadsheetNow() {
+  var sheet = getTargetSheet();
+  cleanAndAlignSheetColumns(sheet);
+  Logger.log("Spreadsheet cleaned successfully! Current columns: Full Name, Email Address, Date and Time of Submission.");
 }
 
 // ============================================================================
 // 6. EMAIL DELIVERY
 // ============================================================================
 
-function sendOwnerNotificationEmail(fullName, email, whatsapp, timestamp) {
-  var cleanPhone = whatsapp.replace(/\D/g, "");
-  var waDirectLink = "https://wa.me/" + cleanPhone;
+/**
+ * Sends notification email to Business Owner (Christiana Odulum).
+ * Contains ONLY:
+ * 1. Full Name
+ * 2. Email Address
+ * 3. Submission Date & Time
+ * (All WhatsApp rows, numbers, links, and buttons have been completely removed)
+ */
+function sendOwnerNotificationEmail(fullName, email, timestamp) {
   var subject = "New Lead: " + fullName + " requested The 10-Minute Inbox Reset";
-  
+
   var htmlBody = "" +
     "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; color: #1e293b;'>" +
-      "<div style='background-color: #0B192C; color: #ffffff; padding: 18px 24px; border-radius: 6px; margin-bottom: 20px;'>" +
+      "<div style='background-color: #085C52; color: #ffffff; padding: 18px 24px; border-radius: 6px; margin-bottom: 20px;'>" +
         "<h2 style='margin: 0; font-size: 20px;'>SmartPath Business Solutions</h2>" +
-        "<p style='margin: 4px 0 0 0; font-size: 13px; color: #94a3b8;'>New Lead Notification</p>" +
+        "<p style='margin: 4px 0 0 0; font-size: 13px; color: #E5C583;'>New Lead Notification</p>" +
       "</div>" +
       "<p style='font-size: 15px; line-height: 1.5;'>Hello <strong>Christiana</strong>,</p>" +
-      "<p style='font-size: 14px; line-height: 1.5;'>A new visitor has submitted their details on the SmartPath website:</p>" +
+      "<p style='font-size: 14px; line-height: 1.5;'>A new visitor has submitted their details to receive <strong>The 10-Minute Inbox Reset</strong>:</p>" +
       "<table style='width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;'>" +
         "<tr style='background-color: #f8fafc;'><td style='padding: 10px; font-weight: bold; border-bottom: 1px solid #e2e8f0; width: 35%;'>Full Name:</td><td style='padding: 10px; border-bottom: 1px solid #e2e8f0;'>" + fullName + "</td></tr>" +
-        "<tr><td style='padding: 10px; font-weight: bold; border-bottom: 1px solid #e2e8f0;'>Email Address:</td><td style='padding: 10px; border-bottom: 1px solid #e2e8f0;'><a href='mailto:" + email + "' style='color: #0d9488; text-decoration: none;'>" + email + "</a></td></tr>" +
-        "<tr style='background-color: #f8fafc;'><td style='padding: 10px; font-weight: bold; border-bottom: 1px solid #e2e8f0;'>WhatsApp Number:</td><td style='padding: 10px; border-bottom: 1px solid #e2e8f0;'>" + whatsapp + "</td></tr>" +
-        "<tr><td style='padding: 10px; font-weight: bold; border-bottom: 1px solid #e2e8f0;'>Submission Date & Time:</td><td style='padding: 10px; border-bottom: 1px solid #e2e8f0;'>" + timestamp + "</td></tr>" +
+        "<tr><td style='padding: 10px; font-weight: bold; border-bottom: 1px solid #e2e8f0;'>Email Address:</td><td style='padding: 10px; border-bottom: 1px solid #e2e8f0;'><a href='mailto:" + email + "' style='color: #085C52; text-decoration: none; font-weight: bold;'>" + email + "</a></td></tr>" +
+        "<tr style='background-color: #f8fafc;'><td style='padding: 10px; font-weight: bold; border-bottom: 1px solid #e2e8f0;'>Submission Date & Time:</td><td style='padding: 10px; border-bottom: 1px solid #e2e8f0;'>" + timestamp + "</td></tr>" +
       "</table>" +
-      "<div style='margin-top: 24px; text-align: center;'>" +
-        "<a href='" + waDirectLink + "' style='background-color: #25D366; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 14px;'>Open Lead in WhatsApp</a>" +
-      "</div>" +
       "<p style='margin-top: 30px; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 14px;'>Lead stored in Google Sheet: SmartPath Business Solutions – Lead Records</p>" +
     "</div>";
 
@@ -327,20 +340,24 @@ function sendOwnerNotificationEmail(fullName, email, whatsapp, timestamp) {
   });
 }
 
+/**
+ * Sends confirmation email to visitor.
+ * PRESERVED EXACTLY: Includes direct guide download link and Christiana's WhatsApp contact details.
+ */
 function sendVisitorConfirmationEmail(fullName, email) {
   var firstName = fullName.split(" ")[0] || fullName;
   var subject = "Your Free Guide: The 10-Minute Inbox Reset | SmartPath Business Solutions";
   
   var htmlBody = "" +
     "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; color: #1e293b;'>" +
-      "<div style='background-color: #0B192C; color: #ffffff; padding: 20px 24px; border-radius: 6px; margin-bottom: 24px;'>" +
+      "<div style='background-color: #085C52; color: #ffffff; padding: 20px 24px; border-radius: 6px; margin-bottom: 24px;'>" +
         "<h2 style='margin: 0; font-size: 22px;'>SmartPath Business Solutions</h2>" +
-        "<p style='margin: 4px 0 0 0; font-size: 13px; color: #5eead4;'>Practical Business Support. Better Organization.</p>" +
+        "<p style='margin: 4px 0 0 0; font-size: 13px; color: #E5C583;'>Practical Business Support. Better Organization.</p>" +
       "</div>" +
       "<h3 style='color: #0F172A; font-size: 18px; margin-top: 0;'>Hello " + firstName + ",</h3>" +
       "<p style='font-size: 15px; line-height: 1.6;'>Thank you for requesting <strong>The 10-Minute Inbox Reset</strong>. Your free copy is ready to download right now.</p>" +
       "<div style='text-align: center; margin: 30px 0;'>" +
-        "<a href='" + GUIDE_DOWNLOAD_URL + "' style='background-color: #0D9488; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;'>Download The 10-Minute Inbox Reset</a>" +
+        "<a href='" + GUIDE_DOWNLOAD_URL + "' style='background-color: #085C52; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;'>Download The 10-Minute Inbox Reset</a>" +
       "</div>" +
       "<div style='background-color: #f8fafc; border-left: 4px solid #0D9488; padding: 16px; margin: 24px 0; border-radius: 4px;'>" +
         "<h4 style='margin: 0 0 8px 0; font-size: 14px; color: #0f172a;'>Need Hands-On Support For Your Business?</h4>" +

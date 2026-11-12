@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { LeadFormData, SubmissionResponse, ValidationErrors } from '../types';
 import { validateLeadForm, submitLead } from '../services/leadService';
 import { BRAND } from '../config/constants';
-import { Mail, User, Phone, CheckCircle, AlertCircle, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
+import { Mail, User, CheckCircle, AlertCircle, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
 
 interface LeadCaptureFormProps {
   onSuccess: (lead: LeadFormData, submissionResult?: SubmissionResponse) => void;
@@ -12,7 +12,6 @@ export const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ onSuccess }) =
   const [formData, setFormData] = useState<LeadFormData>({
     fullName: '',
     email: '',
-    whatsappNumber: '',
   });
 
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -62,10 +61,10 @@ export const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ onSuccess }) =
   return (
     <div id="lead-form" className="scroll-mt-24 w-full">
       {/* Decorative Outer Shell with Metallic Gold, Copper & Emerald Gradient Rim */}
-      <div className="relative rounded-3xl p-[2px] bg-gradient-to-br from-[#D4AF37] via-[#C87D55] to-[#064E3B] shadow-[0_25px_60px_-15px_rgba(2,44,34,0.22)]">
+      <div className="relative rounded-3xl p-[2px] bg-gradient-to-br from-[#D4AF37] via-[#C87D55] to-[#085C52] shadow-[0_25px_60px_-15px_rgba(8,92,82,0.22)]">
         <div className="bg-[#FFFDF9]/98 backdrop-blur-md rounded-[22px] p-6 sm:p-9 md:p-11 border border-white/80">
           {/* Subtle Top Metallic Accent Bar */}
-          <div className="w-20 h-1.5 rounded-full bg-gradient-to-r from-[#064E3B] via-[#D4AF37] to-[#C87D55] mx-auto mb-6" />
+          <div className="w-20 h-1.5 rounded-full bg-gradient-to-r from-[#085C52] via-[#D4AF37] to-[#C87D55] mx-auto mb-6" />
 
           {/* Form Heading & Subhead */}
           <div className="text-center mb-8">
@@ -77,7 +76,7 @@ export const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ onSuccess }) =
               Get Your Free Guide
             </h3>
             <p className="mt-2 text-sm sm:text-base text-[#475569] max-w-md mx-auto leading-relaxed">
-              Fill in your details below to download <span className="font-bold text-[#064E3B]">{BRAND.guideTitle}</span> immediately.
+              Fill in your details below to download <span className="font-bold text-[#085C52]">{BRAND.guideTitle}</span> immediately.
             </p>
           </div>
 
@@ -92,7 +91,7 @@ export const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ onSuccess }) =
             </div>
           )}
 
-          {/* Lead Capture Form */}
+          {/* Lead Capture Form: ONLY Full Name and Email Address */}
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
             {/* Field 1: Full Name */}
             <div>
@@ -101,7 +100,7 @@ export const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ onSuccess }) =
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <User className="w-4 h-4 text-[#064E3B]/70" />
+                  <User className="w-4 h-4 text-[#085C52]/70" />
                 </div>
                 <input
                   type="text"
@@ -115,7 +114,7 @@ export const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ onSuccess }) =
                   className={`w-full pl-10 pr-4 py-3.5 text-sm rounded-xl border bg-[#FAF5EB] text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-4 transition-all shadow-xs ${
                     errors.fullName
                       ? 'border-rose-400 focus:ring-rose-200 focus:border-rose-500'
-                      : 'border-[#E0D5C1] focus:ring-[#D4AF37]/25 focus:border-[#064E3B]'
+                      : 'border-[#E0D5C1] focus:ring-[#D4AF37]/25 focus:border-[#085C52]'
                   } disabled:bg-slate-100 disabled:cursor-not-allowed`}
                 />
               </div>
@@ -134,7 +133,7 @@ export const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ onSuccess }) =
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Mail className="w-4 h-4 text-[#064E3B]/70" />
+                  <Mail className="w-4 h-4 text-[#085C52]/70" />
                 </div>
                 <input
                   type="email"
@@ -148,7 +147,7 @@ export const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ onSuccess }) =
                   className={`w-full pl-10 pr-4 py-3.5 text-sm rounded-xl border bg-[#FAF5EB] text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-4 transition-all shadow-xs ${
                     errors.email
                       ? 'border-rose-400 focus:ring-rose-200 focus:border-rose-500'
-                      : 'border-[#E0D5C1] focus:ring-[#D4AF37]/25 focus:border-[#064E3B]'
+                      : 'border-[#E0D5C1] focus:ring-[#D4AF37]/25 focus:border-[#085C52]'
                   } disabled:bg-slate-100 disabled:cursor-not-allowed`}
                 />
               </div>
@@ -156,48 +155,6 @@ export const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ onSuccess }) =
                 <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1 font-medium">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                   {errors.email}
-                </p>
-              )}
-            </div>
-
-            {/* Field 3: WhatsApp Number */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="whatsappNumber" className="block text-sm font-semibold text-[#022C22]">
-                  WhatsApp Number <span className="text-rose-500">*</span>
-                </label>
-                <span className="text-[11px] font-semibold text-[#064E3B] bg-[#E8F3EE] px-2 py-0.5 rounded border border-[#C2DEC8]">
-                  Nigerian & Intl
-                </span>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Phone className="w-4 h-4 text-[#064E3B]/70" />
-                </div>
-                <input
-                  type="tel"
-                  id="whatsappNumber"
-                  name="whatsappNumber"
-                  value={formData.whatsappNumber}
-                  onChange={handleChange}
-                  disabled={isSubmitting}
-                  placeholder="e.g. +234 905 632 0234 or 0803 123 4567"
-                  autoComplete="tel"
-                  className={`w-full pl-10 pr-4 py-3.5 text-sm rounded-xl border bg-[#FAF5EB] text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-4 transition-all shadow-xs ${
-                    errors.whatsappNumber
-                      ? 'border-rose-400 focus:ring-rose-200 focus:border-rose-500'
-                      : 'border-[#E0D5C1] focus:ring-[#D4AF37]/25 focus:border-[#064E3B]'
-                  } disabled:bg-slate-100 disabled:cursor-not-allowed`}
-                />
-              </div>
-              {errors.whatsappNumber ? (
-                <p className="mt-1.5 text-xs text-rose-600 flex items-center gap-1 font-medium">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                  {errors.whatsappNumber}
-                </p>
-              ) : (
-                <p className="mt-1.5 text-xs text-[#64748B]">
-                  Accepts Nigerian (080..., 090..., +234...) and international numbers.
                 </p>
               )}
             </div>
@@ -233,7 +190,7 @@ export const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({ onSuccess }) =
             {/* Truthful Privacy Statement (Required by Project Spec) */}
             <div className="pt-3 border-t border-[#EFE7D8] text-center">
               <p className="text-xs text-[#64748B] leading-relaxed flex items-center justify-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#064E3B] shrink-0 inline" />
+                <ShieldCheck className="w-4 h-4 text-[#085C52] shrink-0 inline" />
                 <span>
                   Your information will be used to deliver the requested guide and communicate relevant services.
                 </span>

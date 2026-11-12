@@ -18,7 +18,7 @@ export function cleanAppsScriptUrl(rawUrl: string): string {
 
 /**
  * Validates lead form input according to project specifications.
- * Supports Nigerian (080..., 090..., +234...) and international numbers (+1, +44, etc.).
+ * Form now collects only Full Name and Email Address.
  */
 export function validateLeadForm(data: LeadFormData): ValidationErrors {
   const errors: ValidationErrors = {};
@@ -34,15 +34,6 @@ export function validateLeadForm(data: LeadFormData): ValidationErrors {
     errors.email = 'Email address is required.';
   } else if (!emailRegex.test(data.email.trim())) {
     errors.email = 'Please enter a valid email address (e.g. name@company.com).';
-  }
-
-  // 3. WhatsApp Number validation (Nigerian and international)
-  const phoneClean = data.whatsappNumber.replace(/[\s\-\(\)]/g, '');
-  const phoneRegex = /^(\+?\d{8,15}|0[789][01]\d{8})$/;
-  if (!data.whatsappNumber || !data.whatsappNumber.trim()) {
-    errors.whatsappNumber = 'WhatsApp number is required to receive follow-up notes.';
-  } else if (!phoneRegex.test(phoneClean)) {
-    errors.whatsappNumber = 'Please enter a valid WhatsApp number (e.g. +234 905 632 0234 or 0803 123 4567).';
   }
 
   return errors;
@@ -184,7 +175,6 @@ export async function submitLead(data: LeadFormData): Promise<SubmissionResponse
     id: `lead_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
     fullName: data.fullName.trim(),
     email: data.email.trim().toLowerCase(),
-    whatsappNumber: data.whatsappNumber.trim(),
     timestamp: now.toISOString(),
     formattedDate,
     status: 'success',
@@ -202,7 +192,6 @@ export async function submitLead(data: LeadFormData): Promise<SubmissionResponse
         body: JSON.stringify({
           fullName: record.fullName,
           email: record.email,
-          whatsappNumber: record.whatsappNumber,
           timestamp: record.timestamp,
         }),
       });
@@ -213,6 +202,27 @@ export async function submitLead(data: LeadFormData): Promise<SubmissionResponse
         jsonResult = JSON.parse(text);
       } catch (parseErr) {
         // If response received but could not be parsed as JSON, the HTTP request still succeeded
+      }
+
+      if (jsonResult && jsonResult.status === 'error') {
+        record.status = 'failed';
+        record.backendResponse = jsonResult.message || 'Error reported by Apps Script backend';
+        saveLeadToStorage(record);
+
+        let errorMessage = jsonResult.message || 'Submission failed. Please check backend configuration.';
+        // If the live Google Apps Script deployment is still running an older version that checked for WhatsApp
+        if (typeof jsonResult.message === 'string' && (/whatsapp/i.test(jsonResult.message) || /digits/i.test(jsonResult.message))) {
+          errorMessage = 'Google Apps Script Deployment Update Needed: Your active Web App on Google Cloud is still running an older deployed version that required a WhatsApp number. In Google Apps Script, click Deploy > Manage deployments > Edit > Version: New version > Deploy to activate the updated 2-field code.';
+        }
+
+        return {
+          success: false,
+          sheetSaved: false,
+          ownerEmailSent: false,
+          visitorEmailSent: false,
+          isLiveBackend: true,
+          message: errorMessage,
+        };
       }
 
       const sheetSaved = jsonResult ? Boolean(jsonResult.sheetSaved ?? (jsonResult.status === 'success')) : true;
@@ -234,7 +244,7 @@ export async function submitLead(data: LeadFormData): Promise<SubmissionResponse
         visitorEmailSent,
         emailError,
         isLiveBackend: true,
-        message: jsonResult?.message || 'Lead saved to Google Sheet and emails sent.',
+        message: jsonResult?.message || 'Lead saved to Google Sheet and confirmation email sent.',
         lead: data,
       };
 
@@ -256,7 +266,6 @@ export async function submitLead(data: LeadFormData): Promise<SubmissionResponse
           body: new URLSearchParams({
             fullName: record.fullName,
             email: record.email,
-            whatsappNumber: record.whatsappNumber,
             timestamp: record.timestamp,
           }).toString(),
         });

@@ -20,7 +20,7 @@ import {
 interface SetupAndDeploymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectLeadForTest?: (lead: { fullName: string; email: string; whatsappNumber: string }) => void;
+  onSelectLeadForTest?: (lead: { fullName: string; email: string }) => void;
 }
 
 export const SetupAndDeploymentModal: React.FC<SetupAndDeploymentModalProps> = ({
@@ -69,7 +69,6 @@ function doPost(e) {
     var data = parseRequestData(e);
     var fullName = (data.fullName || data.name || "").toString().trim();
     var email = (data.email || "").toString().trim().toLowerCase();
-    var whatsappNumber = (data.whatsappNumber || data.phone || "").toString().trim();
 
     if (!fullName || fullName.length < 2) {
       return createJsonResponse({ status: "error", message: "Please provide your full name." }, 400);
@@ -77,23 +76,20 @@ function doPost(e) {
     if (!email || !email.includes("@")) {
       return createJsonResponse({ status: "error", message: "Please provide a valid email address." }, 400);
     }
-    if (!whatsappNumber || whatsappNumber.replace(/\\D/g, "").length < 8) {
-      return createJsonResponse({ status: "error", message: "Please provide a valid WhatsApp number." }, 400);
-    }
 
     var sheet = getOrInitializeSheet();
     var now = new Date();
     var formattedDateTime = Utilities.formatDate(now, Session.getScriptTimeZone() || "GMT+1", "yyyy-MM-dd HH:mm:ss");
 
-    sheet.appendRow([fullName, email, whatsappNumber, formattedDateTime, "Confirmed"]);
+    sheet.appendRow([fullName, email, formattedDateTime]);
 
-    try { sendOwnerNotificationEmail(fullName, email, whatsappNumber, formattedDateTime); } catch (e) {}
+    try { sendOwnerNotificationEmail(fullName, email, formattedDateTime); } catch (e) {}
     try { sendVisitorConfirmationEmail(fullName, email); } catch (e) {}
 
     return createJsonResponse({
       status: "success",
       message: "Lead recorded successfully.",
-      data: { fullName: fullName, email: email, whatsappNumber: whatsappNumber, submittedAt: formattedDateTime }
+      data: { fullName: fullName, email: email, submittedAt: formattedDateTime }
     }, 200);
   } catch (error) {
     return createJsonResponse({ status: "error", message: error.toString() }, 500);
@@ -120,25 +116,38 @@ function parseRequestData(e) {
 
 function getOrInitializeSheet() {
   var spreadsheet = SPREADSHEET_ID ? SpreadsheetApp.openById(SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = spreadsheet.getSheetByName("Leads") || spreadsheet.getActiveSheet();
+  var sheet = spreadsheet.getSheetByName("Sheet1") || spreadsheet.getActiveSheet();
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(["Full Name", "Email Address", "WhatsApp Number", "Date & Time of Submission", "Status"]);
-    var range = sheet.getRange(1, 1, 1, 5);
-    range.setFontWeight("bold").setBackground("#0B192C").setFontColor("#FFFFFF");
-    sheet.setFrozenRows(1);
+    sheet.appendRow(["Full Name", "Email Address", "Date and Time of Submission"]);
+  } else {
+    // Delete any existing WhatsApp column and enforce 3 clean columns
+    var lastCol = sheet.getLastColumn();
+    if (lastCol > 0) {
+      var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+      for (var c = headers.length - 1; c >= 0; c--) {
+        var h = (headers[c] || "").toString().toLowerCase();
+        if (h.indexOf("whatsapp") !== -1 || h.indexOf("phone") !== -1) {
+          sheet.deleteColumn(c + 1);
+        }
+      }
+    }
+    sheet.getRange(1, 1).setValue("Full Name");
+    sheet.getRange(1, 2).setValue("Email Address");
+    sheet.getRange(1, 3).setValue("Date and Time of Submission");
   }
+  var range = sheet.getRange(1, 1, 1, 3);
+  range.setFontWeight("bold").setBackground("#085C52").setFontColor("#FFFFFF");
+  sheet.setFrozenRows(1);
   return sheet;
 }
 
-function sendOwnerNotificationEmail(name, email, phone, timestamp) {
+function sendOwnerNotificationEmail(name, email, timestamp) {
   var subject = "New Lead: " + name + " requested The 10-Minute Inbox Reset";
   var html = "<div style='font-family: Arial; padding: 20px;'>" +
     "<h3>New Lead from SmartPath Website</h3>" +
     "<p><strong>Full Name:</strong> " + name + "</p>" +
     "<p><strong>Email:</strong> " + email + "</p>" +
-    "<p><strong>WhatsApp:</strong> " + phone + "</p>" +
     "<p><strong>Time:</strong> " + timestamp + "</p>" +
-    "<p><a href='https://wa.me/" + phone.replace(/\\D/g, "") + "'>Message Lead on WhatsApp</a></p>" +
     "</div>";
   MailApp.sendEmail({ to: OWNER_EMAIL, subject: subject, htmlBody: html });
 }
@@ -404,10 +413,9 @@ function createJsonResponse(data, code) {
                 <div className="overflow-x-auto border border-slate-200 rounded-xl">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-[#0B192C] text-white">
+                      <tr className="bg-[#085C52] text-white">
                         <th className="py-2.5 px-3 font-semibold">Full Name</th>
                         <th className="py-2.5 px-3 font-semibold">Email</th>
-                        <th className="py-2.5 px-3 font-semibold">WhatsApp Number</th>
                         <th className="py-2.5 px-3 font-semibold">Submitted At</th>
                         <th className="py-2.5 px-3 font-semibold">Backend Channel</th>
                       </tr>
@@ -417,7 +425,6 @@ function createJsonResponse(data, code) {
                         <tr key={item.id} className="hover:bg-slate-50">
                           <td className="py-2.5 px-3 font-medium text-slate-900">{item.fullName}</td>
                           <td className="py-2.5 px-3 text-slate-600 font-mono text-[11px]">{item.email}</td>
-                          <td className="py-2.5 px-3 text-slate-600">{item.whatsappNumber}</td>
                           <td className="py-2.5 px-3 text-slate-500 whitespace-nowrap">{item.formattedDate}</td>
                           <td className="py-2.5 px-3">
                             <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
@@ -517,8 +524,8 @@ git push -u origin main`}
                 <ul className="space-y-1.5 text-xs text-slate-700">
                   <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> Landing Page with Hero, Benefits (4 items), Guide Intro, and Lead Form</li>
                   <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> Complete Thank-You Page with Guide Download and WhatsApp CTA</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> Lead capture form with Full Name, Email, and WhatsApp number fields</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> Field validation (required fields, email format, Nigerian & int'l phones)</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> Lead capture form with Full Name and Email fields</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> Field validation (required fields, valid email format)</li>
                   <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> Loading state and duplicate submission prevention</li>
                   <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> Seamless routing to Thank-You page on confirmed submission</li>
                   <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600" /> Complete Google Apps Script backend code (Code.gs)</li>

@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate }) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#02231A]/95 backdrop-blur-md border-b border-[#D4AF37]/25 text-[#FBF7EE] transition-all shadow-[0_4px_30px_rgba(2,35,26,0.6)]">
+    <header className="sticky top-0 z-40 bg-[#085C52]/95 backdrop-blur-md border-b border-[#D4AF37]/25 text-[#FBF7EE] transition-all shadow-[0_4px_30px_rgba(8,92,82,0.4)]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-8">
         {/* Zone 1: Brand Wordmark (SmartPath) */}
         <button
@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPath, onNavigate }) => {
           className="text-left font-bold text-xl sm:text-2xl tracking-tight text-[#FBF7EE] hover:text-[#F3E5AB] transition-colors whitespace-nowrap shrink-0 flex items-center gap-2.5 cursor-pointer group"
           aria-label="SmartPath Business Solutions Home"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#065F46] via-[#04392B] to-[#02231A] text-[#F9F1DC] flex items-center justify-center font-extrabold text-sm tracking-wider shadow-md ring-1 ring-[#D4AF37]/50 group-hover:ring-[#D4AF37] group-hover:scale-105 transition-all">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#085C52] via-[#064840] to-[#043630] text-[#F9F1DC] flex items-center justify-center font-extrabold text-sm tracking-wider shadow-md ring-1 ring-[#D4AF37]/50 group-hover:ring-[#D4AF37] group-hover:scale-105 transition-all">
             SP
           </div>
           <div className="flex flex-col">

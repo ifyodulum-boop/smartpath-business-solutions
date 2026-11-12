@@ -24,7 +24,6 @@ export const GOOGLE_SHEETS_CONFIG = {
   columnHeadings: [
     'Full Name',
     'Email Address',
-    'WhatsApp Number',
     'Date and Time of Submission'
   ]
 };
@@ -36,10 +35,9 @@ export const GOOGLE_SHEETS_CONFIG = {
 export const APPS_SCRIPT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwislB1H4SrzKeiQqTU8s6jPo7azO5RIqDKsdmgZ38HztJrOmfpXN4YNFJA_rSzvM9l/exec';
 
 export const COLOR_PALETTE = {
-  emeraldDark: '#02231A',
-  emeraldDeep: '#032B20',
-  emeraldRich: '#064E3B',
-  emeraldVibrant: '#065F46',
+  emeraldPrimary: '#085C52',
+  emeraldDark: '#064840',
+  emeraldDeep: '#053B34',
   champagneLight: '#F3E5AB',
   champagneGold: '#E5C583',
   metallicGold: '#D4AF37',
