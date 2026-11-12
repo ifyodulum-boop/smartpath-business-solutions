@@ -1,0 +1,6 @@
+{
+  "name": "SmartPath Business Solutions",
+  "description": "Lead generation funnel offering The 10-Minute Inbox Reset guide by Christiana Odulum with Google Sheets and Google Apps Script integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
