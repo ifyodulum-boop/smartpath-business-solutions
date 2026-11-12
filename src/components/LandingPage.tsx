@@ -2,6 +2,8 @@ import React from 'react';
 import { LeadFormData, SubmissionResponse } from '../types';
 import { LeadCaptureForm } from './LeadCaptureForm';
 import { BRAND } from '../config/constants';
+import heroFlatGuideImg from '../assets/images/hero_flat_guide_1794500328666.jpg';
+import guideWhiteBookImg from '../assets/images/guide_white_book_1794503301645.jpg';
 import { 
   FolderCheck, 
   FileText, 
@@ -116,7 +118,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLeadSuccess }) => {
                 <div className="relative bg-gradient-to-b from-[#0A7367]/60 via-[#064840]/90 to-[#043630] rounded-3xl p-3 sm:p-4 shadow-2xl shadow-black/60 border border-[#D4AF37]/40 transition-all duration-300">
                   <div className="relative rounded-2xl overflow-hidden ring-1 ring-[#D4AF37]/50 shadow-2xl">
                     <img
-                      src="/src/assets/images/hero_flat_guide_1794500328666.jpg"
+                      src={heroFlatGuideImg}
                       alt="Professional virtual assistant working on laptop with organized email inbox, with The 10-Minute Inbox Reset guide by SmartPath Business Solutions lying flat on the desk"
                       className="w-full h-auto object-cover rounded-xl group-hover:scale-[1.02] transition-transform duration-700"
                       referrerPolicy="no-referrer"
@@ -244,7 +246,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLeadSuccess }) => {
               <div className="lg:col-span-5 order-2 lg:order-1">
                 <div className="relative rounded-2xl overflow-hidden border border-[#D4AF37]/40 shadow-2xl bg-[#043630] group">
                   <img
-                    src="/src/assets/images/guide_white_book_1794503301645.jpg"
+                    src={guideWhiteBookImg}
                     alt="The 10-Minute Inbox Reset by SmartPath Business Solutions - White printed guide lying flat on wooden desk"
                     className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-700"
                     referrerPolicy="no-referrer"
